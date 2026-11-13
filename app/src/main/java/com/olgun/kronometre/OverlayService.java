@@ -16,8 +16,9 @@ public class OverlayService extends Service {
  private long elapsed=0,started=0;private boolean running=false;
  private Handler handler=new Handler(Looper.getMainLooper());
  private boolean longPressDone=false;
- private final Runnable closeTask=()->{longPressDone=true;running=false;elapsed=0;handler.removeCallbacks(ticker);stopSelf();};
+
  private final Runnable ticker=new Runnable(){public void run(){update();if(running)handler.postDelayed(this,10);}};
+ private final Runnable closeTask=()->{longPressDone=true;running=false;elapsed=0;handler.removeCallbacks(ticker);stopSelf();};
  private int dp(float n){return (int)(n*getResources().getDisplayMetrics().density+.5f);}
  private GradientDrawable bg(String color){GradientDrawable d=new GradientDrawable();d.setColor(Color.parseColor(color));d.setCornerRadius(dp(4));return d;}
  @Override public void onCreate(){super.onCreate();NotificationManager nm=getSystemService(NotificationManager.class);nm.createNotificationChannel(new NotificationChannel("stopwatch","Kronometre",NotificationManager.IMPORTANCE_LOW));

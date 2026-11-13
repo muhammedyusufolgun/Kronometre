@@ -19,7 +19,7 @@ public class OverlayService extends Service {
  private Button resetButton;
 
  private final Runnable ticker=new Runnable(){public void run(){update();if(running)handler.postDelayed(this,10);}};
- private final Runnable closeTask=()->{longPressDone=true;running=false;elapsed=0;handler.removeCallbacks(ticker);if(resetButton!=null)resetButton.setBackground(bg("#FFB347"));handler.postDelayed(()->stopSelf(),250);};
+ private final Runnable closeTask=()->{longPressDone=true;running=false;elapsed=0;handler.removeCallbacks(ticker);if(resetButton!=null){resetButton.setBackground(bg("#FFB347"));resetButton.setText("Kapanıyor");}handler.postDelayed(()->stopSelf(),900);};
  private int dp(float n){return (int)(n*getResources().getDisplayMetrics().density+.5f);}
  private GradientDrawable bg(String color){GradientDrawable d=new GradientDrawable();d.setColor(Color.parseColor(color));d.setCornerRadius(dp(4));return d;}
  @Override public void onCreate(){super.onCreate();NotificationManager nm=getSystemService(NotificationManager.class);nm.createNotificationChannel(new NotificationChannel("stopwatch","Kronometre",NotificationManager.IMPORTANCE_LOW));
@@ -36,7 +36,7 @@ public class OverlayService extends Service {
  toggle.setOnClickListener(v->{if(running){elapsed+=SystemClock.elapsedRealtime()-started;running=false;handler.removeCallbacks(ticker);toggle.setText("Devam Et");}else{started=SystemClock.elapsedRealtime();running=true;toggle.setText("Duraklat");handler.removeCallbacks(ticker);handler.post(ticker);}update();});
  reset.setOnTouchListener((v,event)->{
  switch(event.getActionMasked()){
- case MotionEvent.ACTION_DOWN: longPressDone=false;reset.setBackground(bg("#FFBFC0"));handler.postDelayed(closeTask,3000);return true;
+ case MotionEvent.ACTION_DOWN: longPressDone=false;reset.setBackground(bg("#FFBFC0"));reset.setText("Sıfırla");handler.postDelayed(closeTask,3000);return true;
  case MotionEvent.ACTION_UP: handler.removeCallbacks(closeTask);if(!longPressDone){running=false;elapsed=0;handler.removeCallbacks(ticker);toggle.setText("Başlat");update();}return true;
  case MotionEvent.ACTION_CANCEL: handler.removeCallbacks(closeTask);if(!longPressDone)reset.setBackground(bg("#FFBFC0"));return true;
  default:return true;

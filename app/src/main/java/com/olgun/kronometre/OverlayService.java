@@ -28,9 +28,9 @@ public class OverlayService extends Service {
  bar=new LinearLayout(this);bar.setOrientation(LinearLayout.HORIZONTAL);bar.setGravity(Gravity.CENTER_VERTICAL);bar.setPadding(dp(3),dp(1),dp(3),dp(1));
  clock=new TextView(this);clock.setTextColor(Color.BLACK);clock.setTextSize(15);clock.setTypeface(Typeface.MONOSPACE,Typeface.BOLD);clock.setSingleLine(true);clock.setGravity(Gravity.CENTER);clock.setBackground(bg("#BDE9FF"));
  bar.addView(clock,new LinearLayout.LayoutParams(0,dp(30),2.3f));
- toggle=button("Başlat","#E4F7E2");LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(0,dp(30),1);p.leftMargin=dp(3);bar.addView(toggle,p);
- Button reset=button("Sıfırla","#FFF0D9");LinearLayout.LayoutParams q=new LinearLayout.LayoutParams(0,dp(30),1);q.leftMargin=dp(3);bar.addView(reset,q);
- Button close=button("Kapat","#FFE5E5");LinearLayout.LayoutParams c=new LinearLayout.LayoutParams(0,dp(30),1);c.leftMargin=dp(3);bar.addView(close,c);
+ toggle=button("Başlat","#F2FCF1");LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(0,dp(30),1);p.leftMargin=dp(3);bar.addView(toggle,p);
+ Button reset=button("Sıfırla","#FFF8EE");LinearLayout.LayoutParams q=new LinearLayout.LayoutParams(0,dp(30),1);q.leftMargin=dp(3);bar.addView(reset,q);
+ Button close=button("Kapat","#FFF2F2");LinearLayout.LayoutParams c=new LinearLayout.LayoutParams(0,dp(30),1);c.leftMargin=dp(3);bar.addView(close,c);
  toggle.setOnClickListener(v->{if(running){elapsed+=SystemClock.elapsedRealtime()-started;running=false;handler.removeCallbacks(ticker);toggle.setText("Devam Et");}else{started=SystemClock.elapsedRealtime();running=true;toggle.setText("Duraklat");handler.removeCallbacks(ticker);handler.post(ticker);}update();});
  reset.setOnClickListener(v->{running=false;elapsed=0;handler.removeCallbacks(ticker);toggle.setText("Başlat");update();});
  close.setOnClickListener(v->{running=false;handler.removeCallbacks(ticker);stopSelf();});

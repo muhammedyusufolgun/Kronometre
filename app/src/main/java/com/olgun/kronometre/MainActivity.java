@@ -1,29 +1,37 @@
 package com.olgun.kronometre;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.graphics.Color;
-import android.graphics.Typeface;
-import android.graphics.drawable.GradientDrawable;
-import android.view.Gravity;
-import android.widget.Button;
-import android.widget.LinearLayout;
-import android.widget.TextView;
+import android.widget.Toast;
 
 public class MainActivity extends Activity {
- private int dp(float n){return (int)(n*getResources().getDisplayMetrics().density+.5f);}
- private GradientDrawable bg(String c){GradientDrawable d=new GradientDrawable();d.setColor(Color.parseColor(c));d.setCornerRadius(dp(4));return d;}
- @Override public void onCreate(Bundle b){super.onCreate(b);
- LinearLayout root=new LinearLayout(this);root.setOrientation(LinearLayout.VERTICAL);root.setBackgroundColor(Color.WHITE);root.setPadding(dp(4),dp(2),dp(4),0);
- TextView info=new TextView(this);info.setText("Kronometre diğer uygulamaların üzerinde, durum çubuğunun altında gösterilir.");info.setTextColor(Color.BLACK);info.setTextSize(14);root.addView(info);
- Button show=new Button(this);show.setAllCaps(false);show.setText("Kronometreyi Göster");show.setTextColor(Color.BLACK);show.setBackground(bg("#B9E9B4"));root.addView(show);
- Button hide=new Button(this);hide.setAllCaps(false);hide.setText("Kronometreyi Kapat");hide.setTextColor(Color.BLACK);hide.setBackground(bg("#FFBFC0"));root.addView(hide);
- show.setOnClickListener(v->{if(!Settings.canDrawOverlays(this)){Intent i=new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,Uri.parse("package:"+getPackageName()));startActivity(i);}else{startForegroundService(new Intent(this,OverlayService.class));finish();}});
- hide.setOnClickListener(v->stopService(new Intent(this,OverlayService.class)));
- setContentView(root);
- if(Settings.canDrawOverlays(this)){startForegroundService(new Intent(this,OverlayService.class));finish();}
+ private boolean settingsOpened=false;
+ private boolean started=false;
+ @Override public void onCreate(Bundle state){super.onCreate(state);if(state!=null)settingsOpened=state.getBoolean("settingsOpened",false);}
+ @Override protected void onResume(){super.onResume();
+ if(started)return;
+ if(Settings.canDrawOverlays(this)){
+  started=true;
+  try{startForegroundService(new Intent(this,OverlayService.class));finish();}
+  catch(Exception e){started=false;Toast.makeText(this,"Kronometre başlatılamadı: "+e.getMessage(),Toast.LENGTH_LONG).show();}
+ }else if(!settingsOpened){
+  new AlertDialog.Builder(this).setTitle("Bir defalık izin gerekiyor")
+   .setMessage("Kronometrenin diğer uygulamaların üzerinde görünmesi için 'Diğer uygulamaların üzerinde göster' iznini açın. İzin verildiğinde kronometre otomatik başlayacaktır.")
+   .setCancelable(false).setPositiveButton("İzin ver",(d,w)->{
+    settingsOpened=true;
+    Intent i=new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,Uri.parse("package:"+getPackageName()));
+    startActivity(i);
+   }).setNegativeButton("Vazgeç",(d,w)->finish()).show();
+ }else{
+  settingsOpened=false;
+  new AlertDialog.Builder(this).setTitle("İzin gerekli")
+   .setMessage("Ekran üstü kronometreyi açmak için izni etkinleştirin.")
+   .setPositiveButton("İzin alanına git",(d,w)->{settingsOpened=true;startActivity(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,Uri.parse("package:"+getPackageName())));})
+   .setNegativeButton("Kapat",(d,w)->finish()).show();
  }
- @Override protected void onResume(){super.onResume();}
+ }
+ @Override protected void onSaveInstanceState(Bundle out){super.onSaveInstanceState(out);out.putBoolean("settingsOpened",settingsOpened);}
 }

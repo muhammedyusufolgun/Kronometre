@@ -19,7 +19,7 @@ public class OverlayService extends Service {
 
  private final Runnable ticker=new Runnable(){public void run(){update();if(running)handler.postDelayed(this,10);}};
  private void vibrateReset(){Vibrator vibrator=(Vibrator)getSystemService(VIBRATOR_SERVICE);if(vibrator!=null&&vibrator.hasVibrator()){if(Build.VERSION.SDK_INT>=26)vibrator.vibrate(VibrationEffect.createOneShot(80,VibrationEffect.DEFAULT_AMPLITUDE));else vibrator.vibrate(80);}}
- private final Runnable resetClockTask=()->{elapsed=0;started=SystemClock.elapsedRealtime();update();vibrateReset();};
+ private final Runnable resetClockTask=()->{running=false;handler.removeCallbacks(ticker);elapsed=0;started=0;if(bar!=null&&lapCountView!=null&&toggle!=null&&bar.indexOfChild(lapCountView)>=0){int index=bar.indexOfChild(lapCountView);LinearLayout.LayoutParams params=(LinearLayout.LayoutParams)lapCountView.getLayoutParams();bar.removeView(lapCountView);bar.addView(toggle,index,params);}if(toggle!=null)toggle.setText("Başlat");update();vibrateReset();};
  private final Runnable resetLapsTask=()->{laps=0;if(lapCountView!=null)lapCountView.setText("");vibrateReset();};
  private void holdToReset(TextView view,Runnable task){view.setOnTouchListener((v,event)->{switch(event.getActionMasked()){case MotionEvent.ACTION_DOWN:handler.removeCallbacks(task);handler.postDelayed(task,2000);return true;case MotionEvent.ACTION_UP:case MotionEvent.ACTION_CANCEL:handler.removeCallbacks(task);return true;default:return true;}});}
  private int dp(float n){return (int)(n*getResources().getDisplayMetrics().density+.5f);}

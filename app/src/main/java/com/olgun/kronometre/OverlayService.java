@@ -12,7 +12,8 @@ import android.widget.*;
 import java.util.Locale;
 
 public class OverlayService extends Service {
- private WindowManager wm;private LinearLayout bar;private TextView clock;private Button toggle;
+ private WindowManager wm;private LinearLayout bar;private TextView clock;private Button toggle,lapButton,closeButton;private TextView lapCountView;
+ private int laps=0;private boolean closePending=false;
  private long elapsed=0,started=0;private boolean running=false;
  private Handler handler=new Handler(Looper.getMainLooper());
 
@@ -28,18 +29,27 @@ public class OverlayService extends Service {
  bar=new LinearLayout(this);bar.setOrientation(LinearLayout.HORIZONTAL);bar.setGravity(Gravity.CENTER_VERTICAL);bar.setPadding(dp(3),dp(1),dp(3),dp(1));
  clock=new TextView(this);clock.setTextColor(Color.BLACK);clock.setTextSize(15);clock.setTypeface(Typeface.MONOSPACE,Typeface.BOLD);clock.setSingleLine(true);clock.setGravity(Gravity.CENTER);clock.setBackground(bg("#BDE9FF"));
  bar.addView(clock,new LinearLayout.LayoutParams(0,dp(30),2.3f));
+ lapCountView=new TextView(this);lapCountView.setGravity(Gravity.CENTER);lapCountView.setTextColor(Color.BLACK);lapCountView.setTextSize(16);lapCountView.setTypeface(Typeface.DEFAULT,Typeface.BOLD);lapCountView.setBackground(bg("#F2FCF1"));
  toggle=button("Başlat","#F2FCF1");LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(0,dp(30),1);p.leftMargin=dp(3);bar.addView(toggle,p);
- Button reset=button("Sıfırla","#FFF8EE");LinearLayout.LayoutParams q=new LinearLayout.LayoutParams(0,dp(30),1);q.leftMargin=dp(3);bar.addView(reset,q);
- Button close=button("Kapat","#FFF2F2");LinearLayout.LayoutParams c=new LinearLayout.LayoutParams(0,dp(30),1);c.leftMargin=dp(3);bar.addView(close,c);
- toggle.setOnClickListener(v->{if(running){elapsed+=SystemClock.elapsedRealtime()-started;running=false;handler.removeCallbacks(ticker);toggle.setText("Devam Et");}else{started=SystemClock.elapsedRealtime();running=true;toggle.setText("Duraklat");handler.removeCallbacks(ticker);handler.post(ticker);}update();});
- reset.setOnClickListener(v->{running=false;elapsed=0;handler.removeCallbacks(ticker);toggle.setText("Başlat");update();});
- close.setOnClickListener(v->{running=false;handler.removeCallbacks(ticker);stopSelf();});
+ lapButton=button("Tur","#FFF8EE");LinearLayout.LayoutParams q=new LinearLayout.LayoutParams(0,dp(30),1);q.leftMargin=dp(3);bar.addView(lapButton,q);
+ closeButton=button("Kapat","#FFF2F2");LinearLayout.LayoutParams c=new LinearLayout.LayoutParams(0,dp(30),1);c.leftMargin=dp(3);bar.addView(closeButton,c);
+ toggle.setOnClickListener(v->{
+  if(running)return;
+  started=SystemClock.elapsedRealtime();running=true;elapsed=0;laps=0;lapCountView.setText("");
+  int index=bar.indexOfChild(toggle);bar.removeView(toggle);bar.addView(lapCountView,index,p);
+  handler.removeCallbacks(ticker);handler.post(ticker);
+ });
+ lapButton.setOnClickListener(v->{if(running){laps++;lapCountView.setText(String.valueOf(laps));}});
+ closeButton.setOnClickListener(v->{
+  if(!closePending){closePending=true;closeButton.setText("Onayla");closeButton.setBackground(bg("#FFD8D8"));}
+  else{running=false;elapsed=0;started=0;laps=0;handler.removeCallbacks(ticker);stopSelf();}
+ });
  WindowManager.LayoutParams w=new WindowManager.LayoutParams(WindowManager.LayoutParams.MATCH_PARENT,WindowManager.LayoutParams.WRAP_CONTENT,WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE|WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,PixelFormat.TRANSLUCENT);
  w.gravity=Gravity.TOP;w.y=dp(26);wm.addView(bar,w);update();
  }
  private void update(){if(clock==null)return;long ms=elapsed+(running?SystemClock.elapsedRealtime()-started:0);long s=ms/1000;clock.setText(String.format(Locale.ROOT,"%02d:%02d:%02d.%02d",s/3600,(s/60)%60,s%60,(ms%1000)/10));}
  @Override public void onConfigurationChanged(Configuration c){super.onConfigurationChanged(c);if(bar!=null){WindowManager.LayoutParams p=(WindowManager.LayoutParams)bar.getLayoutParams();p.y=dp(26);wm.updateViewLayout(bar,p);}}
- @Override public int onStartCommand(Intent i,int flags,int id){return START_STICKY;}
+ @Override public int onStartCommand(Intent i,int flags,int id){return START_NOT_STICKY;}
  @Override public void onDestroy(){handler.removeCallbacks(ticker);if(bar!=null)wm.removeView(bar);super.onDestroy();}
  @Override public IBinder onBind(Intent i){return null;}
 }

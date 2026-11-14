@@ -28,16 +28,16 @@ public class OverlayService extends Service {
  Intent open=new Intent(this,MainActivity.class);PendingIntent pi=PendingIntent.getActivity(this,0,open,PendingIntent.FLAG_IMMUTABLE|PendingIntent.FLAG_UPDATE_CURRENT);
  Notification n=new Notification.Builder(this,"stopwatch").setContentTitle("Kronometre").setContentText("Ekran üstü kronometre çalışıyor").setSmallIcon(android.R.drawable.ic_media_play).setContentIntent(pi).setOngoing(true).build();
  startForeground(1,n);wm=(WindowManager)getSystemService(WINDOW_SERVICE);if(Settings.canDrawOverlays(this))showBar();else stopSelf();}
- private Button button(String text,String color){Button b=new Button(this);b.setText(text);b.setTextColor(Color.BLACK);b.setAllCaps(false);b.setTextSize(12);b.setPadding(dp(3),0,dp(3),0);b.setMinHeight(0);b.setMinimumHeight(0);b.setMinWidth(0);b.setMinimumWidth(0);b.setBackground(bg(color));return b;}
+ private Button button(String text,String color){Button b=new Button(this);b.setText(text);b.setTextColor(Color.BLACK);b.setAllCaps(false);b.setSingleLine(true);b.setEllipsize(null);b.setGravity(Gravity.CENTER);b.setTextSize(11);b.setPadding(dp(3),0,dp(3),0);b.setMinHeight(0);b.setMinimumHeight(0);b.setMinWidth(0);b.setMinimumWidth(0);b.setBackground(bg(color));return b;}
  private void showBar(){
  bar=new LinearLayout(this);bar.setOrientation(LinearLayout.HORIZONTAL);bar.setGravity(Gravity.CENTER_VERTICAL);bar.setPadding(dp(3),dp(1),dp(3),dp(1));
  clock=new TextView(this);clock.setTextColor(Color.BLACK);clock.setTextSize(15);clock.setTypeface(Typeface.MONOSPACE,Typeface.BOLD);clock.setSingleLine(true);clock.setGravity(Gravity.CENTER);clock.setBackground(bg("#BDE9FF"));
- bar.addView(clock,new LinearLayout.LayoutParams(0,dp(30),2.3f));
+ bar.addView(clock,new LinearLayout.LayoutParams(0,dp(30),1f));
  holdToReset(clock,resetClockTask);
  lapCountView=new TextView(this);holdToReset(lapCountView,resetLapsTask);lapCountView.setGravity(Gravity.CENTER);lapCountView.setTextColor(Color.BLACK);lapCountView.setTextSize(16);lapCountView.setTypeface(Typeface.DEFAULT,Typeface.BOLD);lapCountView.setBackground(bg("#F2FCF1"));
- toggle=button("Başlat","#F2FCF1");LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(0,dp(30),1);p.leftMargin=dp(3);bar.addView(toggle,p);
- lapButton=button("Tur","#FFF8EE");LinearLayout.LayoutParams q=new LinearLayout.LayoutParams(0,dp(30),1);q.leftMargin=dp(3);bar.addView(lapButton,q);
- closeButton=button("Kapat","#FFF2F2");LinearLayout.LayoutParams c=new LinearLayout.LayoutParams(0,dp(30),1);c.leftMargin=dp(3);bar.addView(closeButton,c);
+ toggle=button("Başlat","#F2FCF1");LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(dp(65),dp(30));p.leftMargin=dp(12);bar.addView(toggle,p);
+ lapButton=button("Tur","#FFF8EE");LinearLayout.LayoutParams q=new LinearLayout.LayoutParams(dp(52),dp(30));q.leftMargin=dp(4);bar.addView(lapButton,q);
+ closeButton=button("Kapat","#FFF2F2");LinearLayout.LayoutParams c=new LinearLayout.LayoutParams(dp(65),dp(30));c.leftMargin=dp(4);bar.addView(closeButton,c);
  toggle.setOnClickListener(v->{
   if(running)return;
   started=SystemClock.elapsedRealtime();running=true;elapsed=0;laps=0;lapCountView.setText("");

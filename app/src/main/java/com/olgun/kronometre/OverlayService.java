@@ -17,6 +17,7 @@ public class OverlayService extends Service {
  private long elapsed=0,started=0;private boolean running=false;
  private Handler handler=new Handler(Looper.getMainLooper());
 
+ private final Runnable cancelCloseConfirmation=()->{closePending=false;if(closeButton!=null){closeButton.setText("Kapat");closeButton.setBackground(bg("#FFF2F2"));}};
  private final Runnable ticker=new Runnable(){public void run(){update();if(running)handler.postDelayed(this,10);}};
  private void vibrateReset(){Vibrator vibrator=(Vibrator)getSystemService(VIBRATOR_SERVICE);if(vibrator!=null&&vibrator.hasVibrator()){if(Build.VERSION.SDK_INT>=26)vibrator.vibrate(VibrationEffect.createOneShot(80,VibrationEffect.DEFAULT_AMPLITUDE));else vibrator.vibrate(80);}}
  private final Runnable resetClockTask=()->{running=false;handler.removeCallbacks(ticker);elapsed=0;started=0;if(bar!=null&&lapCountView!=null&&toggle!=null&&bar.indexOfChild(lapCountView)>=0){int index=bar.indexOfChild(lapCountView);LinearLayout.LayoutParams params=(LinearLayout.LayoutParams)lapCountView.getLayoutParams();bar.removeView(lapCountView);bar.addView(toggle,index,params);}if(toggle!=null)toggle.setText("Başlat");update();vibrateReset();};
@@ -46,8 +47,8 @@ public class OverlayService extends Service {
  });
  lapButton.setOnClickListener(v->{if(running){laps++;lapCountView.setText(String.valueOf(laps));}});
  closeButton.setOnClickListener(v->{
-  if(!closePending){closePending=true;closeButton.setText("Onayla");closeButton.setBackground(bg("#FFD8D8"));}
-  else{running=false;elapsed=0;started=0;laps=0;handler.removeCallbacks(ticker);stopSelf();}
+  if(!closePending){closePending=true;closeButton.setText("Onayla");closeButton.setBackground(bg("#FFD8D8"));handler.removeCallbacks(cancelCloseConfirmation);handler.postDelayed(cancelCloseConfirmation,3000);}
+  else{handler.removeCallbacks(cancelCloseConfirmation);running=false;elapsed=0;started=0;laps=0;handler.removeCallbacks(ticker);stopSelf();}
  });
  WindowManager.LayoutParams w=new WindowManager.LayoutParams(WindowManager.LayoutParams.MATCH_PARENT,WindowManager.LayoutParams.WRAP_CONTENT,WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE|WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,PixelFormat.TRANSLUCENT);
  w.gravity=Gravity.TOP;w.y=dp(26);wm.addView(bar,w);update();
@@ -55,6 +56,6 @@ public class OverlayService extends Service {
  private void update(){if(clock==null)return;long ms=elapsed+(running?SystemClock.elapsedRealtime()-started:0);long s=ms/1000;clock.setText(String.format(Locale.ROOT,"%02d:%02d:%02d.%02d",s/3600,(s/60)%60,s%60,(ms%1000)/10));}
  @Override public void onConfigurationChanged(Configuration c){super.onConfigurationChanged(c);if(bar!=null){WindowManager.LayoutParams p=(WindowManager.LayoutParams)bar.getLayoutParams();p.y=dp(26);wm.updateViewLayout(bar,p);}}
  @Override public int onStartCommand(Intent i,int flags,int id){return START_NOT_STICKY;}
- @Override public void onDestroy(){handler.removeCallbacks(ticker);handler.removeCallbacks(resetClockTask);handler.removeCallbacks(resetLapsTask);if(bar!=null)wm.removeView(bar);super.onDestroy();}
+ @Override public void onDestroy(){handler.removeCallbacks(ticker);handler.removeCallbacks(resetClockTask);handler.removeCallbacks(resetLapsTask);handler.removeCallbacks(cancelCloseConfirmation);if(bar!=null)wm.removeView(bar);super.onDestroy();}
  @Override public IBinder onBind(Intent i){return null;}
 }

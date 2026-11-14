@@ -18,9 +18,10 @@ public class OverlayService extends Service {
  private Handler handler=new Handler(Looper.getMainLooper());
 
  private final Runnable ticker=new Runnable(){public void run(){update();if(running)handler.postDelayed(this,10);}};
- private final Runnable resetClockTask=()->{elapsed=0;started=SystemClock.elapsedRealtime();update();};
- private final Runnable resetLapsTask=()->{laps=0;if(lapCountView!=null)lapCountView.setText("");};
- private void holdToReset(TextView view,Runnable task){view.setOnTouchListener((v,event)->{switch(event.getActionMasked()){case MotionEvent.ACTION_DOWN:handler.removeCallbacks(task);handler.postDelayed(task,3000);return true;case MotionEvent.ACTION_UP:case MotionEvent.ACTION_CANCEL:handler.removeCallbacks(task);return true;default:return true;}});}
+ private void vibrateReset(){Vibrator vibrator=(Vibrator)getSystemService(VIBRATOR_SERVICE);if(vibrator!=null&&vibrator.hasVibrator()){if(Build.VERSION.SDK_INT>=26)vibrator.vibrate(VibrationEffect.createOneShot(80,VibrationEffect.DEFAULT_AMPLITUDE));else vibrator.vibrate(80);}}
+ private final Runnable resetClockTask=()->{elapsed=0;started=SystemClock.elapsedRealtime();update();vibrateReset();};
+ private final Runnable resetLapsTask=()->{laps=0;if(lapCountView!=null)lapCountView.setText("");vibrateReset();};
+ private void holdToReset(TextView view,Runnable task){view.setOnTouchListener((v,event)->{switch(event.getActionMasked()){case MotionEvent.ACTION_DOWN:handler.removeCallbacks(task);handler.postDelayed(task,2000);return true;case MotionEvent.ACTION_UP:case MotionEvent.ACTION_CANCEL:handler.removeCallbacks(task);return true;default:return true;}});}
  private int dp(float n){return (int)(n*getResources().getDisplayMetrics().density+.5f);}
  private GradientDrawable bg(String color){GradientDrawable d=new GradientDrawable();d.setColor(Color.parseColor(color));d.setCornerRadius(dp(4));return d;}
  @Override public void onCreate(){super.onCreate();NotificationManager nm=getSystemService(NotificationManager.class);nm.createNotificationChannel(new NotificationChannel("stopwatch","Kronometre",NotificationManager.IMPORTANCE_LOW));
